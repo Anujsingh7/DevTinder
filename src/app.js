@@ -4,55 +4,27 @@ const connectDB = require("./config/database");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
-// const {adminAuth}=require("./middleware/auth")
+const cookieParser = require("cookie-parser");
+// const jwt=require("jsonwebtoken");
+const { userAuth } = require("./middleware/auth");
+const authRouter=require("./routes/auth");
+const profileRouter=require("./routes/profile");
+const requestRouter=require("./routes/request");
+
+
+
 
 app.use(express.json()); /// express middleware.
+app.use(cookieParser()); ///
 
 // ! get data from user and then store in the database actually playing with data send form body of postman.
-app.post("/signup", async (req, res) => {
-  try {
-    const { firstName, lastName, email, password } = req.body;
-    // validate the users
-    validateSignUpData(req);
 
-    // password validation
-    const hashPassword = await bcrypt.hash(password, 10);
-    // console.log(hashPassword);
+app.use("/",authRouter);
+app.use("/",profileRouter);
+app.use("/",requestRouter);
 
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password: hashPassword,
-    });
-    await user.save();
-    res.send("user added successfully");
-  } catch (err) {
-    if (err.code === 11000) {
-      // This error code indicates a duplicate key error
-      res.status(400).send("Email already exists");
-    } else {
-      res.status(400).send("ERROR : " + err.message);
-    }
-  }
-});
 
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
-    if (!user) {
-      throw new Error("Invalid Credentials");
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new Error("Invalid Credentials");
-    }
-    res.send("Login Successful");
-  } catch (err) {
-    res.status(400).send("ERROR :" + err.message);
-  }
-});
+
 
 app.patch("/signUp", async (req, res) => {
   // api level data sanitization.
@@ -80,28 +52,28 @@ app.patch("/signUp", async (req, res) => {
   }
 });
 
-app.get("/feed", async (req, res) => {
-  const email = req.body.email;
-  try {
-    const users = await User.find({ email: email });
-    res.send(users);
-  } catch (err) {
-    res.status(400).send("data not fetched successfully " + err.message);
-  }
-});
+// app.get("/feed", async (req, res) => {
+//   const email = req.body.email;
+//   try {
+//     const users = await User.find({ email: email });
+//     res.send(users);
+//   } catch (err) {
+//     res.status(400).send("data not fetched successfully " + err.message);
+//   }
+// });
 
-app.delete("/signUp", async (req, res) => {
-  const id = req.body.id;
-  try {
-    const check = await User.findByIdAndDelete(id);
-    if (!check) {
-      throw new Error("No data present for given user");
-    }
-    res.send("data deleted successfully");
-  } catch (err) {
-    res.status(400).send("data not deleted successfully " + err.message);
-  }
-});
+// app.delete("/signUp", async (req, res) => {
+//   const id = req.body.id;
+//   try {
+//     const check = await User.findByIdAndDelete(id);
+//     if (!check) {
+//       throw new Error("No data present for given user");
+//     }
+//     res.send("data deleted successfully");
+//   } catch (err) {
+//     res.status(400).send("data not deleted successfully " + err.message);
+//   }
+// });
 
 // app.post("/signUp", async (req, res) => {
 // const user = new User({
